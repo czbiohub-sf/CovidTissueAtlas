@@ -1,4 +1,4 @@
-# Covid19 Tissue Atlas
+# Covid Tissue Atlas
 
 
 
