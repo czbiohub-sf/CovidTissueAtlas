@@ -12,9 +12,19 @@ vars = read.csv('var.csv')
 # obsm UMAP coords
 obsm = read.csv('obsm.csv', header = T)
 
+#check that vars is not empty
+if(dim(vars)[2]==0){
+    vars$gene_symbol = row.names(vars)
+    #vars$gene_ids = row.names(vars)
+    #vars$feature_types = 'Gene Expression'
+}
+
 # for CTA datasets, we replace the name of the virus transcripts
 # fix the virus name
-vars$gene_symbol[grep('SARS',vars$gene_ids)] <- vars$gene_ids[grep('SARS',vars$gene_ids)]
+#vars$gene_symbol[grep('SARS',vars$gene_ids)] <- vars$gene_ids[grep('SARS',vars$gene_ids)]
+#fix the exmpy first element in vars (some bug from scanpy after concatenation)
+if(vars$gene_symbol[1]=="") 
+    vars$gene_symbol[1] = "101"
 
 colnames(counts) <- vars$gene_symbol
 row.names(counts) <- obs[,1]
