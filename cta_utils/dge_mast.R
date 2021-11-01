@@ -49,7 +49,7 @@ dgeCTA <- function(regr_ngenes = T, out_id = ''){
 dgeOrgan <- function(tissue = "liver",  # tissue to process
                     ann_col = "cell_type_annotation", # which col in meta.data has the cell type label
                     output_dir = '/mnt/ibm_lg/covid_tissue_atlas/results/DGE/MAST/', # write DGE .csvs here 
-                    input_dir_prefix= '/mnt/ibm_lg/covid_tissue_atlas/data/tissue_objects/', 
+                    input_dir_prefix= '/mnt/ibm_lg/covid_tissue_atlas/data/tissue_objects/all_tissues/', 
                     data_id = "", # ID append for output files  , 
                     regress_ngenes = T
                     ){
@@ -104,20 +104,23 @@ load_sce_object <- function( file_path = "",
     # obs data.frame
     obs = read.csv( paste0(file_path, 'obs.csv'), header = T)
     # var data.frame
-    vars = read.csv( paste0(file_path, 'var.csv'))
+    vars = read.csv( paste0(file_path, 'var.csv'), row.names = 1)
     # obsm UMAP coords
     obsm = read.csv( paste0(file_path,'obsm.csv'), header = T)
 
-    # Covariates for DGE 
-    #covariate = ' + lab'
-    #covariate = ''
-
+    #check that vars is not empty
+    if(dim(vars)[2]==0){
+        vars$gene_symbol = row.names(vars)
+        #vars$gene_ids = row.names(vars)
+        #vars$feature_types = 'Gene Expression'
+    }
 
     # for CTA datasets, we replace the name of the virus transcripts
     # fix the virus name
-    if(grep(names(vars), pattern = 'gene_id')){
-    vars$gene_symbol[grep('SARS',vars$gene_ids)] <- vars$gene_ids[grep('SARS',vars$gene_ids)]
-    }
+    #vars$gene_symbol[grep('SARS',vars$gene_ids)] <- vars$gene_ids[grep('SARS',vars$gene_ids)]
+    #fix the exmpy first element in vars (some bug from scanpy after concatenation)
+    if(vars$gene_symbol[1]=="") 
+        vars$gene_symbol[1] = "101"
 
     colnames(counts) <- vars$gene_symbol
     row.names(counts) <- obs[,1]
