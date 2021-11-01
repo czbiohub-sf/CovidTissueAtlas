@@ -8,7 +8,7 @@ counts = readMM('sparse_matrix.mtx')
 # obs data.frame
 obs = read.csv('obs.csv', header = T)
 # var data.frame
-vars = read.csv('var.csv')
+vars = read.csv('var.csv', row.names = 1)
 # obsm UMAP coords
 obsm = read.csv('obsm.csv', header = T)
 
