@@ -227,38 +227,26 @@ dge_MAST <- function(core = c(), covariate = "" ){
 
 # merge all DE results into a single data.frame 
 # this function also cleans the cell type annotations 
-merge_organs <- function(tissues = c('liver','lung','kidney','prostate','heart')){
+merge_organs <- function(tissues = c('liver','lung','kidney','prostate','heart'), 
+                            file_id = 'DGE_allcelltypes_ngenes_regression.csv', 
+                            output_file_id = '', covariate = 'ngenes'){
 
         # Read DE output for MAST and merge into a single data.frame
         organs_dge = list()
         for(t in 1:length(tissues)){
-            organs_dge[[t]] = read.csv(file =paste0(DGE_DIR, tissues[t], '_DGE_allcelltypes_MAST_ngenes.csv'), row.names = 1, header = T)
+            organs_dge[[t]] = read.csv(file =paste0(DGE_DIR, tissues[t], '_', file_id), row.names = 1, header = T)
             organs_dge[[t]]$tissue = tissues[t]
         }
         master_df <- do.call(rbind, organs_dge )
 
-        master_df$cell_type <- tolower(master_df$cell_type)
-
-        # clean some mismatches 
-        master_df$cell_type[master_df$cell_type=='t cell'] <- 't-cell'
-        master_df$cell_type[master_df$cell_type=='cardiac fibroblast'] <- 'fibroblast'
-        master_df$cell_type[master_df$cell_type=='endothelial cell'] <- 'endothelial'
-
-        # use regular expressions to assign broader categories to cell types
-        # some might not get any depending on how specific the annotation is 
-        master_df$cell_class  =""
-
-        master_df$cell_class[grep(master_df$cell_type, pattern ='endo')] ='endothelial' 
-        master_df$cell_class[grep(master_df$cell_type, pattern = 'epith')] = 'epithelial'
-        master_df$cell_class[grep(master_df$cell_type, pattern = 'hepat')] = 'epithelial'
-
-        master_df$cell_class[grep(master_df$cell_type, pattern = "fibro|smooth")] = "stromal"
-        master_df$cell_class[grep(master_df$cell_type, pattern ='macrophage')] ='macrophage' 
-
         master_df %>% mutate(full_cell_type = paste0(tissue, ": " , cell_type)) -> master_df
+        master_df %>% rename(gene = primerid, pval = fdr, log2fc = coef) -> master_df 
+        master_df$method = 'MAST'
+        master_df$covariate = covariate 
+        master_df %>% dplyr::select(gene, pval, log2fc, cell_type, tissue, method, covariate) -> master_df
 
-        write.csv(master_df, file = paste0(DGE_DIR, 'all_celltypes_DGE_clean_MAST.csv'), quote = F, row.names = F)
-
+        #write.csv(master_df, file = paste0(DGE_DIR, 'all_celltypes_DGE_',output_file_id,'_MAST.csv'), quote = F, row.names = F)
+        return(master_df)
 }
 
 # Additional DGE methods 
