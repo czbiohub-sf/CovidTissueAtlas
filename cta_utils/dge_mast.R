@@ -230,7 +230,7 @@ dge_MAST <- function(core = c(), covariate = "" ){
 merge_organs <- function(tissues = c('liver','lung','kidney','prostate','heart'), 
                             file_id = 'DGE_allcelltypes_ngenes_regression.csv', 
                             output_file_id = '', covariate = 'ngenes', 
-                            write_out = FALSE){
+                            write_out = FALSE){ 
 
         # Read DE output for MAST and merge into a single data.frame
         organs_dge = list()
