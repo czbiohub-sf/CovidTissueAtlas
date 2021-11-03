@@ -229,7 +229,8 @@ dge_MAST <- function(core = c(), covariate = "" ){
 # this function also cleans the cell type annotations 
 merge_organs <- function(tissues = c('liver','lung','kidney','prostate','heart'), 
                             file_id = 'DGE_allcelltypes_ngenes_regression.csv', 
-                            output_file_id = '', covariate = 'ngenes'){
+                            output_file_id = '', covariate = 'ngenes', 
+                            write_out = FALSE){
 
         # Read DE output for MAST and merge into a single data.frame
         organs_dge = list()
@@ -240,13 +241,16 @@ merge_organs <- function(tissues = c('liver','lung','kidney','prostate','heart')
         master_df <- do.call(rbind, organs_dge )
 
         master_df %>% mutate(full_cell_type = paste0(tissue, ": " , cell_type)) -> master_df
-        master_df %>% rename(gene = primerid, pval = fdr, log2fc = coef) -> master_df 
+        master_df %>% dplyr::rename(gene = primerid, pval = fdr, log2fc = coef) -> master_df 
         master_df$method = 'MAST'
         master_df$covariate = covariate 
         master_df %>% dplyr::select(gene, pval, log2fc, cell_type, tissue, method, covariate) -> master_df
 
-        #write.csv(master_df, file = paste0(DGE_DIR, 'all_celltypes_DGE_',output_file_id,'_MAST.csv'), quote = F, row.names = F)
-        return(master_df)
+        if(write_out){
+            write.csv(master_df, file = paste0(DGE_DIR, 'all_celltypes_DGE_',output_file_id,'_MAST.csv'), quote = F, row.names = F)
+        }else{
+            return(master_df)
+        }
 }
 
 # Additional DGE methods 
