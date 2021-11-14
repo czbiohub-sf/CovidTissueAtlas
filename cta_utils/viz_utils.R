@@ -119,4 +119,5 @@ dot_plot = function(selected_rows = NULL,
 #   else {
 #       ggsave(filename, width = width, height = height, limitsize=F)
 #   }
+    return(plot.data)
 }
