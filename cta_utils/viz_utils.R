@@ -36,12 +36,15 @@ volcano_plot <- function(genes = data.frame() ){
       guides(color=guide_legend(override.aes=list(size=5))) + ggtitle(genes$cell_type %>% unique)
 }
 
-plot_DE_direction <- function(master_de = data.frame(), which_tissue = 'liver'){
+plot_DE_direction <- function(master_de = data.frame(), which_tissue = 'liver', log_x = FALSE){
     
     master_de %>% mutate(expr = ifelse(log2fc >0, 'up','down')) %>% dplyr::filter(tissue ==which_tissue) %>% 
         group_by(tissue, cell_type) %>% summarise(n_up = sum(expr=='up'), n_down = sum(expr=='down')) -> split_expression
 
-    
+    if(log_x){
+        split_expression$n_up <- log10(split_expression$n_up)
+        split_expression$n_down <- log10(split_expression$n_down)
+    }
     split_expression <- split_expression %>%  mutate(cell_type = fct_reorder(cell_type, n_up))
     
     p <- ggplot(data =split_expression) + 
@@ -55,6 +58,7 @@ plot_DE_direction <- function(master_de = data.frame(), which_tissue = 'liver'){
                         ylab('N DE genes (- down + up)') + xlab('Cell type')
     return(p)
 }
+
 
 
 # cell phone DB dotplot 
