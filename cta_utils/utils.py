@@ -348,7 +348,7 @@ def short_celltype_names(tissue =""):
                 'type ii pneumocyte' : 'AT-II', 
                 'lung ciliated cell': 'ciliated cell'
             }, 
-            'kidney': 
+            'kidney': {}
 
     }
 
