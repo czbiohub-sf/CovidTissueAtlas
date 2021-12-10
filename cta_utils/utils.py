@@ -264,7 +264,7 @@ def concat_2anndata(adata1,adata2):
     return adata
 
 
-def get_markers(tissue):
+def get_markers(tissue =""):
     all_markers = {
         'prostate': {'luminal': ['KLK3','NKX3-1','ACPP','KRT8'],
                      'basal': ['KRT5','NOTCH4','TP63','DST'],

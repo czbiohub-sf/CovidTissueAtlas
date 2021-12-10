@@ -1,11 +1,32 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-mpl.rcParams.update(mpl.rcParamsDefault) #Reset rcParams to default
-colors = plt.rcParams['axes.prop_cycle'].by_key()['color']  # Colors in this style
-mpl.rcParams['pdf.fonttype'] = 42
-mpl.rcParams['ps.fonttype'] = 42
-mpl.rcParams['font.family'] = 'Arial'
+
+
+# we use this header in all notebooks 
+
+def setup_fig_params(this_sample =""): 
+    # directory final object and figures will be saved to
+    FIG_DIR = '/mnt/ibm_lg/covid_tissue_atlas/figures/figure2/' + this_sample + '/'
+
+    # if directory doesn't exist, make directory
+    if not os.path.exists(FIG_DIR):
+        os.makedirs(FIG_DIR)
+
+    #print package versions
+    print('package versions:')
+    print('\n'.join(f'{m.__name__} {m.__version__}' for m in globals().values() if getattr(m, '__version__', None)))
+
+    # make sure you use these two parameters before saving figures to pdf
+    plt.rcParams['pdf.fonttype'] = 42
+    plt.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.family'] = 'Arial'
+
+    sc.settings.verbosity = 3            
+    sc.set_figure_params(dpi=150)
+    sc.settings.figdir = FIG_DIR
+
 
 # Plotting style function (run this before plotting the final figure)
 def set_plotting_style():
