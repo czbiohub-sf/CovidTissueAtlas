@@ -218,11 +218,11 @@ def run_scvi(adata, n_layers, n_latent, batch_label ='10X_run'):
     return adata
 
 
-def compute_neighbors(adata, use_rep):
+def compute_neighbors(adata, use_rep, k = 15 , use_metric = 'cosine'):
     """
     Compute neighbors using decontx (decontX_UMAP) or SCVI (X_scVI) -corrected obsm.
     """
-    sc.pp.neighbors(adata, use_rep=use_rep)
+    sc.pp.neighbors(adata, use_rep=use_rep, n_neighbors = k , metric = use_metric )
     sc.tl.leiden(adata)
     #sc.tl.louvain(adata)
     sc.tl.umap(adata)
