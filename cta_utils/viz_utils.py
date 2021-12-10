@@ -25,9 +25,8 @@ def setup_fig_params(this_sample =""):
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.family'] = 'Arial'
 
-    sc.settings.verbosity = 3            
-    sc.set_figure_params(dpi=150)
-    sc.settings.figdir = FIG_DIR
+    return FIG_DIR 
+
 
 
 # Plotting style function (run this before plotting the final figure)
