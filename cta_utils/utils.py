@@ -7,6 +7,34 @@ import scanpy as sc
 import os
 import scvi
 
+# Data location -- final h5ads 
+DATA_DIR = '/mnt/ibm_lg/covid_tissue_atlas/data/tissue_objects/all_tissues/'
+# File names for each tissue
+# keep this dictionary updated!
+sample_dict = {'liver':  'liver_CTA_only.h5ad',
+               'lung':   'lung_CTA_TS_integrated.h5ad',
+               'kidney': 'kidney_CTA_KA_integrated.h5ad',
+               'heart': 'heart_CTA_only.h5ad',
+               'prostate': 'prostate_CTA_only.h5ad'}
+
+# Function loading the processed datasets for figure making 
+def load_final_tissue(this_sample, cta_only = True ): 
+    # Load final object (subset from the CTA atlas)
+    if(cta_only): 
+        sample_name  = this_sample + "_CTA_only.h5ad"
+    else: 
+        sample_name = sample_dict[this_sample] # Load an integrated object containing external data (for DE )
+
+    adata_path = DATA_DIR + this_sample + '/'  + sample_name 
+    
+    print("Loading " + this_sample +  " dataset located at " + adata_path ) 
+    
+    adata = sc.read_h5ad(adata_path)
+    return adata 
+
+
+
+
 def read_cellbender_h5ad_to_combined_adata(data_path):
     '''
     Reads in a data path to directory containing cellbender-processed files to be combined into adata object. Returns one adata object
@@ -182,11 +210,11 @@ def run_scvi(adata, n_layers, n_latent, batch_label ='10X_run'):
     return adata
 
 
-def compute_neighbors(adata, use_rep, k= 30, n_pc = None, use_metric = 'euclidean'):
+def compute_neighbors(adata, use_rep):
     """
     Compute neighbors using decontx (decontX_UMAP) or SCVI (X_scVI) -corrected obsm.
     """
-    sc.pp.neighbors(adata, use_rep=use_rep, n_neighbors = k, n_pcs = n_pc, metric = use_metric )
+    sc.pp.neighbors(adata, use_rep=use_rep)
     sc.tl.leiden(adata)
     #sc.tl.louvain(adata)
     sc.tl.umap(adata)
@@ -309,22 +337,4 @@ def get_markers(tissue =""):
 
 
 
-# Vizualiation
 
-def cell_type_barplot(adata_obj, cell_type_label='annotations_v1',group_by='disease_status', cluster_lab  ='leiden'):
-    cell_type_counts = adata_obj.obs.groupby(by=[cell_type_label,group_by]).count()[cluster_lab].reset_index()
-
-    ax = sns.histplot(
-        cell_type_counts,
-        y=cell_type_label,
-        # Use the value variable here to turn histogram counts into weighted
-        # values.
-        weights=cluster_lab,
-        hue=group_by,
-        multiple='dodge',
-        palette=['#24b1d1', '#ae24d1'],
-        # Add white borders to the bars.
-        edgecolor='white',
-        # Shrink the bars a bit so they don't touch.
-        shrink=0.8
-    )
