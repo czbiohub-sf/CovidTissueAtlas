@@ -17,6 +17,14 @@ sample_dict = {'liver':  'liver_CTA_only.h5ad',
                'heart': 'heart_CTA_only.h5ad',
                'prostate': 'prostate_CTA_only.h5ad'}
 
+
+# COVID genes of interest
+# covid entry factors 
+def get_covid_genes(): 
+    return {'Entry genes' : ['ACE2', 'TMPRSS2', 'CTSL'],
+    'Entry receptors' : ['ACE2', 'BSG', 'NRP1', 'DPP4', 'ANPEP', 'ENPEP', 'AGTR2'], 
+    'Entry proteases' : ['TMPRSS2', 'CTSL', 'FURIN', 'PRSS1'] } 
+
 # Function loading the processed datasets for figure making 
 def load_final_tissue(this_sample, cta_only = True ): 
     # Load final object (subset from the CTA atlas)
@@ -294,47 +302,53 @@ def concat_2anndata(adata1,adata2):
 
 def get_markers(tissue =""):
     all_markers = {
-        'prostate': {'luminal': ['KLK3','NKX3-1','ACPP','KRT8'],
-                     'basal': ['KRT5','NOTCH4','TP63','DST'],
-                     'endothelial':['VWF','PECAM1','SELE'],
-                     'smooth_muscle':['ACTA2', 'MYH11', 'TPM2'],
-                     'fibroblast':['DCN', 'C7', 'PDGFRA']},
-        'liver': {'hepatocyte': ['ALB', 'APOA1', 'HAL', 'SDS','HAMP'],
-                  'stromal': ['ACTA2', 'COL1A1', 'DCN', 'COLEC11', 'SPARC'],
-                  'endothelium': ['PECAM1', 'CLEC4G', 'CLEC4M', 'FLT4','FCGR2B'],
-                  'smooth_muscle':['ACTA2', 'MYH11', 'CNN1', 'TAGLN'],
-                  'kupffer':['CLEC4F', 'CD5L', 'VSIG4',  'MST1R', 'MAFB'],
-                  'NK cell': ['PTPRC', 'KLRB1', 'KLRF1', 'GZMA']},
-        'colon':{'epithelial': ['LGR5', 'ALPI', 'CHGA', 'DCLK1'],
-                 'endothelial': ['VWF', 'NOTCH1', 'ACKR1', 'LYVE1'],
-                 'stroma': ['CNN1', 'ACTA2', 'TAGLN', 'NOTCH3'],
-                 'immune': ['JCHAIN', 'MZB1', 'XBP1', 'TNFRSF17']},
-        'heart':{'endothelium':['VWF', 'PECAM1', 'CDH5'],
-                 'cardiac muscle cell': ['TNNT2', 'TNNI1', 'TNNI3', 'ACTC1'],
-                 'cardiac fibroblast': ['DCN', 'LUM', 'PDGFRA'],
-                 'smooth muscle cell': ['MYH11', 'TAGLN', 'ACTA2', 'CNN1', 'RGS5', 'AGT', 'CSPG4'],
-                 'macrophage': ['CD163', 'PTPRC', 'MARCO', 'FCGR3A'],
-                 'T-cell CD8': ['CD8A', 'IL7R', 'PTPRC']},
-        'lung': {'neuron': ['CACNA1A', 'NRXN1', 'NRXN3', 'CNTNAP2', 'RBFOX1'],
-                 'alveolar type 1 cell': ['AGER', 'PDPN', 'CLIC5'],
-                 'alveolar type 2 cell': ['SFTPB', 'SFTPC', 'SFTPD', 'MUC1', 'ETV5'],
-                 'basal cell': ['KRT5', 'KRT14', 'TP63', 'DAPL1'],
-                 'lymphatic vessel': ['PROX1', 'PDPN'],
-                 'artery cell': ['GJA5'],
-                 'macrophage': ['MARCO', 'MSR1', 'MRC1'],
-                 'fibroblast': ['COL1A1', 'PDGFRA'],
-                 'NK cell': ['KLRD1', 'NKG7', 'TYROBP'],
-                 'macrophage': ['MARCO', 'MSR1', 'MRC1']},
-        'kidney':{'proximal convoluted tubule cell (PCT)': ['CUBN', 'SLC4A4', 'SLC34A1', 'MIOX'],
-                  'alpha':['SLC4A1','OXGR1','ATP6AP2'],
-                  'ascending limb of loop of Henle cell (LHA)':['SPP1', 'SLC12A1', 'UMOD'],
-                  'distal convoluted tubule cell (DCT)': ['SLC12A3', 'WNK1', 'WNK4', 'SLC12A1'] ,
-                  'B cell' : ['CD79A', 'CD24', 'MS4A1', 'CD19'] ,
-                  'stromal podocyte':['TJP1', 'WT1', 'NPHS1', 'NPHS2', 'THSD7A', 'SYNPO', 'CD2AP', 'COL4A3', 'GOLIM4', 'PODXL', 'PTPRO', 'FOXD1'],
-                  'endothelial': ['GJA4','BMX','ACKR1','AQP1','PROX1', 'FLT4', 'CA4','PDPN','PECAM1','CD34','VWF']}
+        'prostate': {'luminal':         ['KLK3','NKX3-1','ACPP','KRT8'],
+                     'basal':           ['KRT5','NOTCH4','TP63','DST'],
+                     'endothelial':     ['VWF','PECAM1','SELE'],
+                     'smooth muscle':   ['ACTA2', 'MYH11', 'TPM2'],
+                     'fibroblast':      ['DCN', 'C7', 'PDGFRA']},
+        'liver':    {'hepatocyte':      ['ALB', 'APOA1', 'HAL', 'SDS','HAMP'],
+                    'stromal':          ['ACTA2', 'COL1A1', 'DCN', 'COLEC11', 'SPARC'],
+                    'endothelial':      ['PECAM1', 'CLEC4G', 'CLEC4M', 'FLT4','FCGR2B'],
+                    'smooth muscle':    ['ACTA2', 'MYH11', 'CNN1', 'TAGLN'],
+                    'kupffer':          ['CLEC4F', 'CD5L', 'VSIG4',  'MST1R', 'MAFB'],
+                    'NK cell':          ['PTPRC', 'KLRB1', 'KLRF1', 'GZMA']},
+        'heart':    {'endothelial':     ['VWF', 'PECAM1', 'CDH5'],
+                    'cardiac muscle':   ['TNNT2', 'TNNI1', 'TNNI3', 'ACTC1'],
+                    'fibroblast':       ['DCN', 'LUM', 'PDGFRA'],
+                    'smooth muscle':    ['MYH11', 'TAGLN', 'ACTA2', 'CNN1', 'RGS5', 'AGT', 'CSPG4'],
+                    'macrophage':       ['CD163', 'PTPRC', 'MARCO', 'FCGR3A'],
+                    'T-cell CD8':       ['CD8A', 'IL7R', 'PTPRC']},
+        'lung': {   'neuron':           ['CACNA1A', 'NRXN1', 'NRXN3', 'CNTNAP2', 'RBFOX1'],
+                    'AT-I':                ['AGER', 'PDPN', 'CLIC5'],
+                    'AT-II':               [ 'SFTPB', 'SFTPC', 'SFTPD', 'MUC1', 'ETV5'],
+                    'basal cell':          ['KRT5', 'KRT14', 'TP63', 'DAPL1'],
+                    'artery cell':         ['GJA5'],
+                    'macrophage':          ['MARCO', 'MSR1', 'MRC1'],
+                    'fibroblast':          ['COL1A1', 'PDGFRA'],
+                    'NK cell':             ['KLRD1', 'NKG7', 'TYROBP'],
+                    'macrophage':          ['MARCO', 'MSR1', 'MRC1']},
+        'kidney':{  'p conv tubule':      ['CUBN', 'SLC4A4', 'SLC34A1', 'MIOX'],
+                    'alpha':              [ 'SLC4A1','OXGR1','ATP6AP2'],
+                    'asc loop Henle':     ['SPP1', 'SLC12A1', 'UMOD'],
+                    'd conv tubule':      ['SLC12A3', 'WNK1', 'WNK4', 'SLC12A1'] ,
+                    'B cell' :            ['CD79A', 'CD24', 'MS4A1', 'CD19'] ,
+                    'podocyte':           ['TJP1', 'WT1', 'NPHS1', 'NPHS2', 'THSD7A', 'SYNPO', 'CD2AP', 'COL4A3', 'GOLIM4', 'PODXL', 'PTPRO', 'FOXD1'],
+                    'Endothelial':        ['GJA4','BMX','ACKR1','AQP1','PROX1', 'FLT4', 'CA4','PDPN','PECAM1','CD34','VWF']}
     }
     return all_markers[tissue]
 
+# for a given organ it returns a dictionary with short celltype names 
+# it should be then used as pd.rename(columns = dict)
+# or in foor loop to create a short_name column in adata.obs 
+def short_celltype_names(tissue =""): 
+    short_names = {
+            'lung': {
+                'type i pneumocyte': 'AT-I', 
+                'type ii pneumocyte' : 'AT-II', 
+                'lung ciliated cell': 'ciliated cell'
+            }, 
+            'kidney': 
 
-
+    }
 
