@@ -80,3 +80,23 @@ def stylize_axes(ax, title, xlabel, ylabel ): #, xticks, yticks, xticklabels, yt
     
 #     ax.set_xticklabels(xticklabels)
 #     ax.set_yticklabels(yticklabels)
+# Vizualiation
+
+def cell_type_barplot(adata_obj, cell_type_label='annotations_v1',group_by='disease_status', cluster_lab  ='leiden'):
+    cell_type_counts = adata_obj.obs.groupby(by=[cell_type_label,group_by]).count()[cluster_lab].reset_index()
+
+    ax = sns.histplot(
+        cell_type_counts,
+        y=cell_type_label,
+        # Use the value variable here to turn histogram counts into weighted
+        # values.
+        weights=cluster_lab,
+        hue=group_by,
+        multiple='dodge',
+        palette=['#24b1d1', '#ae24d1'],
+        # Add white borders to the bars.
+        edgecolor='white',
+        # Shrink the bars a bit so they don't touch.
+        shrink=0.8
+    )
+
