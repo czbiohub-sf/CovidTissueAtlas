@@ -349,6 +349,7 @@ def short_celltype_names(tissue =""):
                 'lung ciliated cell': 'ciliated cell'
             }, 
             'kidney': {}
-
+    
     }
+    return short_names[tissue]
 
