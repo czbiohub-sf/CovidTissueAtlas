@@ -25,30 +25,7 @@ def get_covid_genes():
     'Entry receptors' : ['ACE2', 'BSG', 'NRP1', 'DPP4', 'ANPEP', 'ENPEP', 'AGTR2'], 
     'Entry proteases' : ['TMPRSS2', 'CTSL', 'FURIN', 'PRSS1'] } 
 
-# Function loading the processed datasets for figure making 
-def load_final_tissue(this_sample, cta_only = True): 
-    # Load final object (subset from the CTA atlas)
-    if(cta_only): 
-        sample_name  = this_sample + "_CTA_only.h5ad"
-    else: 
-        sample_name = sample_dict[this_sample] # Load an integrated object containing external data (for DE )
 
-    adata_path = DATA_DIR + this_sample + '/'  + sample_name 
-    
-    print("Loading " + this_sample +  " dataset located at " + adata_path ) 
-    
-
-    adata = sc.read_h5ad(adata_path)
-    # set gene symbol as index 
-    if(adata.var.columns.isin(['gene_symbol']).any() ):
-        adata.var.set_index('gene_symbol', inplace = True, drop = False)
-
-    # convet cell_ontology_class to short name 
-    short_names =short_celltype_names(this_sample)
-    short_cell_names = [short_names[e] for e in adata.obs.cell_ontology_class  ]
-    adata.obs['short_cell_type'] = short_cell_names
-
-    return adata 
 
 
 
@@ -372,3 +349,29 @@ def short_celltype_names(tissue =""):
     }
     return short_names[tissue]
 
+
+
+# Function loading the processed datasets for figure making 
+def load_final_tissue(this_sample, cta_only = True): 
+    # Load final object (subset from the CTA atlas)
+    if(cta_only): 
+        sample_name  = this_sample + "_CTA_only.h5ad"
+    else: 
+        sample_name = sample_dict[this_sample] # Load an integrated object containing external data (for DE )
+
+    adata_path = DATA_DIR + this_sample + '/'  + sample_name 
+    
+    print("Loading " + this_sample +  " dataset located at " + adata_path ) 
+    
+
+    adata = sc.read_h5ad(adata_path)
+    # set gene symbol as index 
+    if(adata.var.columns.isin(['gene_symbol']).any() ):
+        adata.var.set_index('gene_symbol', inplace = True, drop = False)
+
+    # convet cell_ontology_class to short name 
+    short_names =short_celltype_names(this_sample)
+    short_cell_names = [short_names[e] for e in adata.obs.cell_ontology_class  ]
+    adata.obs['short_cell_type'] = short_cell_names
+
+    return adata 
