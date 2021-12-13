@@ -39,6 +39,9 @@ def load_final_tissue(this_sample, cta_only = True):
     
 
     adata = sc.read_h5ad(adata_path)
+    # set gene symbol as index 
+    if(adata.var.columns.isin(['gene_symbol']).any() ):
+        adata.var.set_index('gene_symbol', inplace = True, drop = False)
 
     # convet cell_ontology_class to short name 
     short_names =short_celltype_names(this_sample)
@@ -326,7 +329,7 @@ def get_markers(tissue =""):
                     'smooth muscle':    ['MYH11', 'TAGLN', 'ACTA2', 'CNN1', 'RGS5', 'AGT', 'CSPG4'],
                     'macrophage':       ['CD163', 'PTPRC', 'MARCO', 'FCGR3A'],
                     'T-cell CD8':       ['CD8A', 'IL7R', 'PTPRC']},
-        'lung': {   'neuron':           ['CACNA1A', 'NRXN1', 'NRXN3', 'CNTNAP2', 'RBFOX1'],
+        'lung': {   
                     'AT-I':                ['AGER', 'PDPN', 'CLIC5'],
                     'AT-II':               [ 'SFTPB', 'SFTPC', 'SFTPD', 'MUC1', 'ETV5'],
                     'basal cell':          ['KRT5', 'KRT14', 'TP63', 'DAPL1'],
@@ -361,9 +364,6 @@ def short_celltype_names(tissue =""):
                 'dendritic cell': 'Dendritic',
                 'basal cell': 'Basal',
                 'b cell': 'B cell'
-
-
-
 
 
             }, 
