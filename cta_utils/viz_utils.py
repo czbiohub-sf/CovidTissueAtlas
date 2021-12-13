@@ -101,3 +101,33 @@ def cell_type_barplot(adata_obj, cell_type_label='annotations_v1',group_by='dise
         shrink=0.8
     )
 
+
+def cellType_barplot(adata = [], ax1 = [], 
+                     use_annotation = 'short_cell_type',
+                     condition = 'disease_status'): 
+
+    stacked_df = adata.obs[[condition, use_annotation]]
+    cluster_disease = stacked_df.pivot_table(index=use_annotation, columns=[condition], aggfunc='size')
+    cluster_disease_pct = cluster_disease.div(cluster_disease.sum(axis=0), axis=1) * 100
+
+    n_types = len(set(adata.obs.cell_type_annotation))
+    cluster_disease_pct.plot(kind='bar', stacked=False, 
+                            grid = False, cmap = 'Spectral' , 
+                            ax = ax1)
+
+    ax1.legend().set_visible(False) # we don't need the legend for the integrated figure    
+    ax1.set_ylabel('Proportion (%)');
+    ax1.set_xlabel('Cell type');
+    return ax1
+
+
+def pretty_umap(adata, group_by = 'condition', use_pal='Spectral',
+                use_title= "COVID status", 
+                ax1 =[]): 
+
+    sc.pl.umap(adata, color=group_by, add_outline=True, legend_loc='right margin',
+                   legend_fontsize=10, legend_fontoutline=2,frameon=False,
+                   title= use_title, palette=use_pal,
+                   ax=ax1, show = False)
+
+    return ax1
