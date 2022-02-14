@@ -344,7 +344,58 @@ def short_celltype_names(tissue =""):
 
 
             }, 
-            'kidney': {}
+            'heart': {
+                'cardiac endothelial cell': 'Endothelial', 
+                'cardiac muscle cell' : 'Cardiomyocyte', 
+                'fibroblast of cardiac tissue': 'Fibroblast',
+                'pericyte cell' : 'Pericyte',
+                'macrophage': 'Macrophage',
+                'smooth muscle cell': 'Smooth muscle',
+                'cardiac neuron': 'neuron',
+                'leukocyte': 'Leukocyte',
+               
+            }, 
+            'kidney' :{
+                'endothelial': 'Endothelial', 
+                'epithelial cell of proximal tubule' : 'Epi prox tub', 
+                'fibroblast': 'Fibroblast',
+                'glomerular visceral epithelial cell' : 'Epi visceral',
+                'kidney connecting tubule epithelial cell': 'Epi connec tub',
+                'kidney distal convoluted tubule epithelial cell': 'Epi distal tub',
+                'kidney loop of henle thick ascending limb epithelial cell': 'Epi henle asce limb',
+                'leukocyte': 'Leukocyte',
+                'mesangial cell': 'Mesangial',
+                'parietal epithelial cell' :'Epi parietal', 
+                'renal alpha-intercalated cell': 'Alpha inter',
+                'renal beta-intercalated cell': 'Beta inter', 
+                'renal principal cell': 'Principal'
+
+
+
+            }, 
+            'liver':{
+                'Kupffer cell': 'Kupffer', 
+                'endothelial cell of hepatic sinusoid': 'Endothelial', 
+                'fibroblast': 'Fibroblast',
+                'hepatocyte': 'Hepatocyte', 
+                'intrahepatic cholangiocyte': 'IH cholangiocyte', 
+                'natural killer cell': 'NK'
+
+            },
+            'prostate': {
+                'Sertoli cell': 'Sertoli',
+                'basal cell': 'Basal', 
+                'endothelial cell': 'Endothelial', 
+                'epithelial cell': 'Epithelial', 
+                'fibroblast': 'Fibroblast', 
+                'hillock cell': 'Hillock', 
+                'luminal cell of prostate epithelium': 'Epi luminal', 
+                'myeloid cell': 'Myeloid', 
+                'smooth muscle cell of prostate': 'Smooth muscle', 
+                'striated muscle cell': 'Striated muscle', 
+                't cell' : 'T-cell'
+
+            }
     
     }
     return short_names[tissue]
@@ -367,11 +418,20 @@ def load_final_tissue(this_sample, cta_only = True):
     adata = sc.read_h5ad(adata_path)
     # set gene symbol as index 
     if(adata.var.columns.isin(['gene_symbol']).any() ):
-        adata.var.set_index('gene_symbol', inplace = True, drop = False)
+        adata.var.set_index('gene_symbol', inplace = True, drop = True)
+
+    #integrated datasets might not be compatible with the cell ontology
+    # in that case, just add the cell type annotation and use it to map short names 
+    if(~adata.obs.columns.isin(['cell_ontology_class']).any() ):
+        adata.obs['cell_ontology_class'] = adata.obs['cell_type_annotation'].copy() 
 
     # convet cell_ontology_class to short name 
     short_names =short_celltype_names(this_sample)
     short_cell_names = [short_names[e] for e in adata.obs.cell_ontology_class  ]
     adata.obs['short_cell_type'] = short_cell_names
+    # tidy objects : 
+    adata.var['Genome'] = 'GRC38h'
+    del adata.obs['batch']
+    adata.obs.rename(columns = {'10X_run':'donorID', 'sample_origin' : 'sampleID' }, inplace = True)
 
     return adata 

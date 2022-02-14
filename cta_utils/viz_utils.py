@@ -46,12 +46,12 @@ def set_plotting_style():
     plt.rc('svg', fonttype='none')
 
 
-def stylize_axes(ax):
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+# def stylize_axes(ax):
+#     ax.spines['top'].set_visible(False)
+#     ax.spines['right'].set_visible(False)
 
-    ax.xaxis.set_tick_params(top='off', direction='out', width=0)
-    ax.yaxis.set_tick_params(right='off', direction='out', width=0)
+#     ax.xaxis.set_tick_params(top='off', direction='out', width=0)
+#     ax.yaxis.set_tick_params(right='off', direction='out', width=0)
     
 def custom_barchart(ax, x, y, error, xlims, ylims, error_kw, color='lightblue', width=0.75):
     """Customized bar chart with positive error bars only."""
@@ -63,7 +63,7 @@ def custom_barchart(ax, x, y, error, xlims, ylims, error_kw, color='lightblue', 
     ax.set_xlim(xlims)
     ax.set_ylim(ylims)
     
-    
+# we use this in the main notebooks
 def stylize_axes(ax, title, xlabel, ylabel ): #, xticks, yticks, xticklabels, yticklabels):
     """Customize axes spines, title, labels, ticks, and ticklabels."""
     ax.spines['top'].set_visible(False)
@@ -77,31 +77,8 @@ def stylize_axes(ax, title, xlabel, ylabel ): #, xticks, yticks, xticklabels, yt
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     
-#     ax.set_xticks(xticks)
-#     ax.set_yticks(yticks)
-    
-#     ax.set_xticklabels(xticklabels)
-#     ax.set_yticklabels(yticklabels)
+
 # Vizualiation
-
-def cell_type_barplot(adata_obj, cell_type_label='annotations_v1',group_by='disease_status', cluster_lab  ='leiden'):
-    cell_type_counts = adata_obj.obs.groupby(by=[cell_type_label,group_by]).count()[cluster_lab].reset_index()
-
-    ax = sns.histplot(
-        cell_type_counts,
-        y=cell_type_label,
-        # Use the value variable here to turn histogram counts into weighted
-        # values.
-        weights=cluster_lab,
-        hue=group_by,
-        multiple='dodge',
-        palette=['#24b1d1', '#ae24d1'],
-        # Add white borders to the bars.
-        edgecolor='white',
-        # Shrink the bars a bit so they don't touch.
-        shrink=0.8
-    )
-
 
 def cellType_barplot(adata = [], ax1 = [], 
                      use_annotation = 'short_cell_type',
@@ -123,6 +100,8 @@ def cellType_barplot(adata = [], ax1 = [],
 
 
 def pretty_umap(adata, group_by = 'condition', use_pal='Spectral',
+
+
                 use_title= "COVID status", 
                 ax1 =[]): 
 
