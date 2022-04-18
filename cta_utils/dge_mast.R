@@ -255,6 +255,73 @@ merge_organs <- function(tissues = c('liver','lung','kidney','prostate','heart')
 
 # Additional DGE methods 
 
+
+# Find the Overlap of DE genes across organs for a list of cell classes 
+# Feb 2022
+findSharedTranscriptionalResponse <- function(master_df = data.frame() , # MASTER data.frame with DE genes for all tissues and cell types 
+                                             class_list  =  c('macrophage', 'endothelial', 'stromal', 'basal'), # list of cell classes to analyse
+                                             n_tissues = c(3, 3,3,2) # Number of organs a gene must appear to be considered part of the Shared response
+                                             ){
+
+        #master_df$cell_class %>% unique -> class_list
+
+     # number of tissues a gene has to appear to be considered in the 'shared response' for a given class
+
+    # save all results as a list (one element per cell type)
+    all_shared_list = list() 
+
+    for(c in 1:length(class_list)){
+        # For each class, filter all entries (gene, cell type, tissue) within the class e.g. endothelial cells 
+        master_df %>% dplyr::filter(cell_class == class_list[c]) -> class_df 
+
+        class_df %>% 
+                group_by(gene) %>% dplyr::count() %>% 
+                arrange(desc(n)) -> tissue_freqs
+        
+        intersect_genes <- tissue_freqs %>% dplyr::filter(n >= n_tissues[c]) %>% pull(gene)
+        
+        # Filter the main data.frame to include ONLY the genes in the shared response 
+        class_df %>% dplyr::filter(gene %in% intersect_genes) -> class_DE
+        
+        # save data frame in a master list compiling all results 
+        all_shared_list[[c]] = class_DE
+        
+        class_DE %>% dplyr::select(gene, log2fc, full_cell_type ) %>% 
+        spread(key = gene, value = log2fc) %>% 
+        tibble::column_to_rownames(var ='full_cell_type') -> class_DE_mat 
+        
+        # Check that there are at least two cell types 
+        if(dim(class_DE_mat)[1]>1){
+            # Visualization 
+            options(repr.plot.width=22, repr.plot.height=5)
+            # Matrix of cell types vs genes, values are log2 FC 
+            # clean matrix for NA, and clip values such that color scale is centered 
+            class_DE_mat %>% as.matrix() -> de_mat 
+            de_mat[is.na(de_mat)] = 0
+            sat_value = min( max(de_mat), -min(de_mat))
+            de_mat[de_mat < -sat_value ] = -sat_value 
+            de_mat[de_mat > sat_value ] = sat_value 
+            # make heatmap
+            de_mat %>% pheatmap(fontsize = 10, method ="ward.D2",
+                                color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100), 
+                                cutree_cols = 4, 
+                                clustering_distance_rows ='correlation')
+
+
+            # write results 
+            # tidy data
+            export_df <- class_DE %>% dplyr::select(gene, log2fc, pval, cell_type, tissue)
+            write.csv(export_df , file = paste0(RES_DIR, class_list[c], "_commonDE_MAST.csv"), quote = F, row.names = F )
+
+            # matrix format 
+            export_mat = de_mat %>% t %>% as.data.frame() 
+            write.csv(export_mat, file = paste0(RES_DIR, class_list[c], "_commonDE_MAST_matrix.csv"), quote = F, row.names  = T )
+        }
+    }
+    export_shared_signatures <- bind_rows(all_shared_list)
+    return(export_shared_signatures) # data.frame of DE genes for each cell type that appear in multiple tissues 
+}
+
 # # # # 
  # # # #
 # # # #
@@ -333,6 +400,58 @@ scanpy_idea <- function(res = data.frame() ){
 # write output 
 #write.csv(summary_mast, file =paste0(output_dir, "DGE_", tissue,"_",cell_type,".csv"))
 
+
+# Export DE data.frame 
+
+exportAsXlsx <- function(DGE_DIR = '/mnt/ibm_lg/covid_tissue_atlas/results/DGE/MAST/', # directory with DE results
+                         dge_file = 'all_celltypes_DGE_ngenescovar_Nov_MAST.csv', # Main file with DE results 
+                        ){
+
+    
+    EXPORT_DIR = '/mnt/ibm_lg/covid_tissue_atlas/results/gene_sets/pathfindr/export_data/'
+
+    # 1. Sort by up /down regulation 
+    # 2. Filter log2fc > abs(1)
+    # 3. Arrange into a spreadsheet where each cell type is saved into a different sheet 
+    # 4. Write a single Excel file for each organ 
+
+    
+    out_path = '/mnt/ibm_lg/covid_tissue_atlas/results/gene_sets/pathfindr/export_data/'
+    # if exported from python is has row.names as first column 
+    master_df <- read.csv(file = paste0(DGE_DIR, dge_file))
+    tissue_list <- unique(master_df$tissue)
+    for(t in tissue_list){
+        tissue_df <- master_df[master_df$tissue== t,]
+        cell_types <- tissue_df$cell_type %>% unique 
+        
+        # create xlsx file for each tissue 
+        work_book <- createWorkbook()
+        for(c in cell_types){
+            file_name <- str_replace(c, " ","_")
+            file_name <- str_replace(file_name, "/","_")
+            
+            cell_type_df <- tissue_df[tissue_df$cell_type==c, ]
+            cell_type_df <- cell_type_df %>% mutate(direction = ifelse(log2fc >0, 'up','down'))
+            cell_type_df <- cell_type_df %>% dplyr::filter(log2fc > abs(1))
+            cell_type_df <- cell_type_df %>% arrange(desc(direction), pval)
+            # add a sheet to the xlsx 
+            addWorksheet(work_book, sheetName= str_trunc(c, 20, "right"))
+            writeData(work_book, str_trunc(c, 20, "right"),cell_type_df )
+            #write.table(cell_type_df, file = paste0(EXPORT_DIR, t,'/DGE_',file_name,'.tsv' ), sep = '\t', quote = F, row.names = F) 
+        }
+        # save xlsx
+        saveWorkbook(work_book,
+                file= paste0(out_path, "spreadsheets/", t, "_DE_all.xlsx"),
+                overwrite = TRUE)
+    }
+}
+
+
+
+
+
+## Depracted/Old methods: 
+# These will be removed 
 
 # GENE SET ENRICHMENT 
 

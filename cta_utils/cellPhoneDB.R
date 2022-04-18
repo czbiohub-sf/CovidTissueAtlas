@@ -19,7 +19,6 @@ OUT_DIR = '/mnt/ibm_lg/covid_tissue_atlas/notebooks/cellphone/'
 
 setwd(OUT_DIR) 
 
-tissue = 'liver'
 
 # Loads seurat object
 # Splits the object by condition (disease_status)

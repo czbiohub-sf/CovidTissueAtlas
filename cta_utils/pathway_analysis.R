@@ -105,3 +105,113 @@ quantile_breaks <- function(xs, n = 10) {
   breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
   breaks[!duplicated(breaks)]
 }
+
+
+
+# Load results for a tissue across all databases 
+
+SETS_DIR =  "/mnt/ibm_lg/covid_tissue_atlas/results/gene_sets/pathfindr/"
+
+getSigGeneSets <- function(this_sample = 'liver',
+                           db_list = c('Reactome', 'KEGG', 'BioCarta', 'GO-All'),
+                           direction = 'up',n_top = 30 ){
+                    
+    gene_sets = list() 
+    for(d in db_list){ 
+        load( paste0(SETS_DIR, this_sample, '/all_cell_types_',d, '_' ,direction, '.rda') ) 
+      tissue_pathways$database = d
+        gene_sets[[d]] = tissue_pathways
+    }
+
+    path_df  = do.call(rbind, gene_sets) 
+
+    path_df %>% dplyr::filter(highest_p <0.001 ) %>% group_by(cell_type, database)  %>% 
+        top_n(n = -n_top, wt = highest_p)  %>% 
+        select(Term_Description, cell_type, Fold_Enrichment, highest_p, support, database, Up_regulated) %>% 
+        arrange(cell_type, database, highest_p) %>% rename( significant_genes = Up_regulated) -> ranked_paths 
+    
+    ranked_paths$direction = direction
+    
+    return(ranked_paths)
+}
+
+
+# Export as spreadsheet 
+
+# Export type 1: one spreadsheet per organ 
+# here we export one file per organ. 
+#  databases are split into separate sheets
+#  pathways are sorted first by cell type and then by p-value 
+exportResults <- function(this_sample = 'liver',
+                         direction ='up' ,
+                         db_list = c('Reactome', 'KEGG', 'BioCarta', 'GO-All') ,
+                         
+                         min_pval = 0.01,
+                         out_path = '/mnt/ibm_lg/covid_tissue_atlas/results/gene_sets/pathfindr/export_data/'
+                         ){
+    work_book <- createWorkbook()
+    
+        
+ 
+    for(d in db_list){ 
+      load( paste0(SETS_DIR, this_sample, '/all_cell_types_',d, '_' ,direction, '.rda') )  
+      tissue_pathways$database = d
+      tissue_pathways <- tissue_pathways %>% dplyr::filter(highest_p < min_pval)
+      tissue_pathways <- tissue_pathways %>% dplyr::filter(highest_p < min_pval)
+      tissue_pathways <- tissue_pathways %>% group_by(cell_type) %>% arrange(cell_type, highest_p)  
+        
+      if(direction =="up"){
+          n_genes_used <- apply(!str_split(tissue_pathways$Up_regulated, ",", simplify = T) =="", 1, sum)
+      }else if(direction =="down"){
+          n_genes_used <- apply(!str_split(tissue_pathways$Down_regulated, ",", simplify = T) =="", 1, sum)
+      }
+      #consider only pathways with more than one gene used in the enrichment 
+      tissue_pathways$n_genes_used <- n_genes_used 
+      tissue_pathways <- tissue_pathways %>% dplyr::filter(n_genes_used >1 )
+      tissue_pathways <- tissue_pathways %>% dplyr::filter(occurrence >1 )
+
+      #tissue_pathways <- tissue_pathways %>% select(-c())
+        # save to Excel 
+        addWorksheet(work_book, sheetName= d)
+        writeData(work_book, d,tissue_pathways )
+    }
+
+    saveWorkbook(work_book,
+             file= paste0(out_path, "spreadsheets/", this_sample, "_genesets_",direction,"regulated.xlsx"),
+             overwrite = TRUE)
+
+}
+
+
+# Export type 2: one master spreadsheet with one sheet per organ 
+# One xlsx document with one sheet per organ 
+# the sheet contains a tidy dataframe with all the enriched pathways
+exportResults_xls <- function(EXPORT_DIR = '/mnt/ibm_lg/covid_tissue_atlas/results/gene_sets/pathfindr/export_data/',
+                              out_file = 'PathwayEnrichment_CTA.xlsx'
+                              ){
+
+  
+
+  work_book <- createWorkbook() 
+  # Read results for each organ 
+  for(t in c('liver','heart','lung','kidney')){
+      this_sample = t
+      # default p-value <0.001 
+      ranked_paths_up <- getSigGeneSets(this_sample = t, direction ='up')
+      ranked_paths_down <- getSigGeneSets(this_sample = t, direction ='down')
+
+      # Merge up and down regulated pathways 
+      all_sets <- rbind(ranked_paths_up, ranked_paths_down)
+      # Assign organ of origin 
+      all_sets$organ = this_sample 
+     
+      addWorksheet(work_book, sheetName= this_sample)
+      writeData(work_book, this_sample, all_sets )
+  }
+  # concatenate the list as a tidy data.frame 
+
+  saveWorkbook(work_book,
+             file= paste0(EXPORT_DIR, "spreadsheets/", out_file),
+             overwrite = TRUE)
+
+}
